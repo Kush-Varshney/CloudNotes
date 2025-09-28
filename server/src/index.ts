@@ -14,17 +14,25 @@ const app = express()
 app.use(express.json())
 app.use(cookieParser())
 
-app.use(
-  cors({
-    origin: [
-      CLIENT_ORIGIN,
-      "https://cloudnotesbykush.vercel.app",
-    ],
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization", "Cookie"],
-  }),
-)
+const whitelist = [
+  CLIENT_ORIGIN,
+  "https://cloudnotesbykush.vercel.app",
+  "http://localhost:5173",
+]
+const corsOptions = {
+  origin: function (origin, callback) {
+    if (whitelist.indexOf(origin) !== -1 || !origin) {
+      callback(null, true)
+    } else {
+      callback(new Error("Not allowed by CORS"))
+    }
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "Cookie"],
+}
+
+app.use(cors(corsOptions))
 
 // Only initialize passport for Google OAuth, but don't use sessions
 app.use(passport.initialize())
