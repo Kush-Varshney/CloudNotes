@@ -37,20 +37,15 @@ export type UserDoc = InferSchemaType<typeof UserSchema> & { _id: mongoose.Types
 
 export const User = {
   async findOne(query: { email?: string; _id?: string }) {
-    console.log("User.findOne called with query:", query)
-    console.log("SAMPLE_MODE:", SAMPLE_MODE)
-    console.log("memUsers:", memUsers)
     if (!SAMPLE_MODE) {
       return mongoose.model("User", UserSchema).findOne(query)
     }
     if (query.email) {
       const found = memUsers.find((u) => u.email === query.email) || null
-      console.log("Found by email:", found)
       return found
     }
     if (query._id) {
       const found = memUsers.find((u) => u._id === query._id) || null
-      console.log("Found by _id:", found)
       return found
     }
     return null

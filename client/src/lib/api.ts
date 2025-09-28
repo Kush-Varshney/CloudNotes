@@ -1,24 +1,18 @@
 const baseUrl = (import.meta as any).env.VITE_API_BASE_URL as string
 
-console.log("  API Base URL:", baseUrl)
-
 type Json = Record<string, any>
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const url = `${baseUrl}${path}`
-  console.log("  Making request to:", url)
 
   const res = await fetch(url, {
     ...options,
-    credentials: "include",
+    credentials: "include", // Ensure cookies are sent with every request
     headers: {
       "Content-Type": "application/json",
       ...(options.headers || {}),
     },
   })
-
-  console.log("  Response status:", res.status)
-  console.log("  Response headers:", Object.fromEntries(res.headers.entries()))
 
   const data = await res.json().catch(() => ({}))
   if (!res.ok) throw data

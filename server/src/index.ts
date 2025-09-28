@@ -1,7 +1,6 @@
 import express from "express"
 import cors from "cors"
 import cookieParser from "cookie-parser"
-import session from "express-session"
 import passport from "passport"
 import { connectDB } from "./config/db"
 import { CLIENT_ORIGIN, PORT } from "./config/env"
@@ -40,30 +39,8 @@ app.use(
   }),
 )
 
-// Session configuration for Passport
-app.use(
-  session({
-    secret: process.env.JWT_SECRET || "fallback-secret",
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      secure: process.env.NODE_ENV === "production",
-      maxAge: 24 * 60 * 60 * 1000, // 24 hours
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-      domain: process.env.NODE_ENV === "production" ? undefined : undefined,
-    },
-  }),
-)
-
+// Only initialize passport for Google OAuth, but don't use sessions
 app.use(passport.initialize())
-app.use(passport.session())
-
-app.use((req, res, next) => {
-  console.log(`  ${req.method} ${req.path}`)
-  console.log(`  Cookies:`, req.cookies)
-  console.log(`  Origin:`, req.get("origin"))
-  next()
-})
 
 app.get("/health", (_req, res) => res.json({ status: "ok" }))
 

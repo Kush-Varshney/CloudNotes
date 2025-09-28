@@ -69,8 +69,6 @@ router.post("/signup/verify", async (req, res) => {
   const record = (await Otp.findOne({ email, purpose: "signup" })) as any
   if (!record) return res.status(400).json({ error: "OTP not found. Start signup again." })
 
-  console.log("OTP record found:", { name: record.name, dob: record.dob, email: record.email })
-
   if (record.expiresAt < new Date()) return res.status(400).json({ error: "OTP expired" })
   if (record.attempts >= 5) return res.status(429).json({ error: "Too many attempts" })
 
@@ -97,13 +95,10 @@ router.post("/signup/verify", async (req, res) => {
     isEmailVerified: true,
   })
 
-  console.log("Created user:", user)
-
   // Cleanup OTP
   await Otp.deleteOne({ _id: record._id })
 
   const token = signJwt(user._id.toString(), user.email)
-  console.log("Created JWT with user ID:", user._id.toString())
   res.cookie("token", token, cookieOptions())
   return res.json({ user: { id: user._id, name: user.name, email: user.email } })
 })
@@ -168,13 +163,9 @@ router.post("/login/verify", async (req, res) => {
 
   const token = signJwt(user._id.toString(), user.email, keepSignedIn)
 
-  console.log("  Setting JWT token cookie for user:", user.email)
-  console.log("  Token length:", token.length)
-
   const cookieOpts = cookieOptions(keepSignedIn)
   res.cookie("token", token, cookieOpts)
 
-  console.log("  Cookie set successfully")
   return res.json({ user: { id: user._id, name: user.name, email: user.email } })
 })
 
@@ -193,9 +184,7 @@ router.post("/logout", async (_req, res) => {
 // GET /auth/me
 router.get("/me", authMiddleware, async (req, res) => {
   const userId = req.auth!.sub
-  console.log("  Looking for user with ID:", userId)
   const user = await User.findOne({ _id: userId })
-  console.log("  Found user:", user)
   if (!user) return res.status(404).json({ error: "User not found" })
   return res.json({ user: { id: user._id, name: user.name, email: user.email } })
 })
@@ -218,14 +207,11 @@ if (GOOGLE_ENABLED) {
           console.error("  No user found after Google authentication")
           return res.redirect(`${CLIENT_ORIGIN}/login?error=no_user`)
         }
-
-        console.log("  Google OAuth success for user:", user.email)
         const token = signJwt(user._id.toString(), user.email)
 
         const cookieOpts = cookieOptions()
         res.cookie("token", token, cookieOpts)
 
-        console.log("  Google OAuth cookie set, redirecting to dashboard")
         res.redirect(`${CLIENT_ORIGIN}/dashboard`)
       } catch (error) {
         console.error("  Google OAuth callback error:", error)

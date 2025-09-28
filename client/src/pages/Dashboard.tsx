@@ -24,18 +24,13 @@ export default function Dashboard() {
     ;(async () => {
       try {
         setLoading(true)
-        console.log("Fetching user data...")
         const [userRes, notesRes] = await Promise.all([
           api.me(),
           api.notes.list()
         ])
-        console.log("User response:", userRes)
-        console.log("Notes response:", notesRes)
         setUser(userRes.user)
         setNotes(notesRes.notes)
       } catch (e: any) {
-        console.error("Error fetching user data:", e)
-        console.error("Error details:", e.error, e.status)
         if (e.error === "Unauthorized" || e.status === 401) {
           setError("Please sign in to continue")
           navigate("/login")
