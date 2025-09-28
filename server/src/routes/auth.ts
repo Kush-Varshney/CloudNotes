@@ -21,12 +21,17 @@ function signJwt(userId: string, email: string, keepSignedIn?: boolean) {
 function cookieOptions(keepSignedIn?: boolean) {
   const isProd = NODE_ENV === "production"
   const maxAge = keepSignedIn ? 30 * 24 * 60 * 60 * 1000 : 7 * 24 * 60 * 60 * 1000 // ms
-  return {
+
+  const options = {
     httpOnly: true,
-    secure: isProd,
-    sameSite: isProd ? ("none" as const) : ("lax" as const),
+    secure: isProd, // Always secure in production
+    sameSite: isProd ? ("none" as const) : ("lax" as const), // Allow cross-origin in production
     maxAge,
+    path: "/",
+    // Don't set domain to allow cookies to work across subdomains
   }
+
+  return options
 }
 
 // POST /auth/signup/start
@@ -162,7 +167,14 @@ router.post("/login/verify", async (req, res) => {
   await Otp.deleteOne({ _id: record._id })
 
   const token = signJwt(user._id.toString(), user.email, keepSignedIn)
-  res.cookie("token", token, cookieOptions(keepSignedIn))
+
+  console.log("  Setting JWT token cookie for user:", user.email)
+  console.log("  Token length:", token.length)
+
+  const cookieOpts = cookieOptions(keepSignedIn)
+  res.cookie("token", token, cookieOpts)
+
+  console.log("  Cookie set successfully")
   return res.json({ user: { id: user._id, name: user.name, email: user.email } })
 })
 
@@ -173,6 +185,7 @@ router.post("/logout", async (_req, res) => {
     httpOnly: true,
     sameSite: isProd ? "none" : "lax",
     secure: isProd,
+    path: "/",
   })
   return res.json({ message: "Logged out" })
 })
@@ -209,16 +222,10 @@ if (GOOGLE_ENABLED) {
         console.log("  Google OAuth success for user:", user.email)
         const token = signJwt(user._id.toString(), user.email)
 
-        const isProd = NODE_ENV === "production"
-        res.cookie("token", token, {
-          httpOnly: true,
-          secure: isProd,
-          sameSite: isProd ? "none" : "lax",
-          maxAge: 7 * 24 * 60 * 60 * 1000,
-          domain: isProd ? undefined : undefined,
-        })
+        const cookieOpts = cookieOptions()
+        res.cookie("token", token, cookieOpts)
 
-        console.log("  Cookie set, redirecting to dashboard")
+        console.log("  Google OAuth cookie set, redirecting to dashboard")
         res.redirect(`${CLIENT_ORIGIN}/dashboard`)
       } catch (error) {
         console.error("  Google OAuth callback error:", error)

@@ -16,19 +16,17 @@ declare global {
 }
 
 export function authMiddleware(req: Request, res: Response, next: NextFunction) {
-  console.log(`  Auth middleware - cookies:`, req.cookies)
   const token = req.cookies?.token as string | undefined
-  console.log(`  Auth middleware - token:`, token ? "present" : "missing")
 
-  if (!token) return res.status(401).json({ error: "Unauthorized" })
+  if (!token) {
+    return res.status(401).json({ error: "Unauthorized - No token" })
+  }
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET) as AuthPayload
-    console.log(`  Auth middleware - decoded:`, decoded)
     req.auth = decoded
     next()
   } catch (error) {
-    console.log(`  Auth middleware - JWT error:`, error)
-    return res.status(401).json({ error: "Unauthorized" })
+    return res.status(401).json({ error: "Unauthorized - Invalid token" })
   }
 }
