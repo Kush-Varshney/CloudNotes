@@ -158,6 +158,7 @@ export default function SignUp() {
               <span>OTP</span>
               <div className="otp-input-wrapper">
                 <input
+                  type={showOtp ? "text" : "password"}
                   inputMode="numeric"
                   pattern="\d{6}"
                   maxLength={6}

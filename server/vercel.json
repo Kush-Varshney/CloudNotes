@@ -14,6 +14,7 @@
   ],
   "env": {
     "CLIENT_ORIGIN": "https://cloudnotesbykush.vercel.app",
-    "SAMPLE_MODE": "false"
+    "SAMPLE_MODE": "false",
+    "NODE_ENV": "production"
   }
 }
