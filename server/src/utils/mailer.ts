@@ -4,7 +4,7 @@ import { SMTP_ENABLED, SMTP_HOST, SMTP_PASS, SMTP_PORT, SMTP_USER, SMTP_FROM, NO
 export async function sendOtpEmail(to: string, otp: string) {
   if (!SMTP_ENABLED) {
     if (NODE_ENV !== "production") {
-      console.log("[v0] OTP (dev):", otp)
+      console.log("  OTP (dev):", otp)
     }
     return { delivered: false }
   }

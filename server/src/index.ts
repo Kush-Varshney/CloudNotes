@@ -58,6 +58,13 @@ app.use(
 app.use(passport.initialize())
 app.use(passport.session())
 
+app.use((req, res, next) => {
+  console.log(`  ${req.method} ${req.path}`)
+  console.log(`  Cookies:`, req.cookies)
+  console.log(`  Origin:`, req.get("origin"))
+  next()
+})
+
 app.get("/health", (_req, res) => res.json({ status: "ok" }))
 
 app.use("/auth", authRoutes)
@@ -65,9 +72,9 @@ app.use("/notes", authMiddleware, notesRoutes)
 
 connectDB()
   .then(() => {
-    app.listen(PORT, () => console.log(`[v0] Server listening on :${PORT}`))
+    app.listen(PORT, () => console.log(`Server listening on :${PORT}`))
   })
   .catch((err) => {
-    console.error("[v0] Failed to connect DB", err)
+    console.error("Failed to connect DB", err)
     process.exit(1)
   })

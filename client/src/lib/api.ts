@@ -1,9 +1,14 @@
 const baseUrl = (import.meta as any).env.VITE_API_BASE_URL as string
 
+console.log("  API Base URL:", baseUrl)
+
 type Json = Record<string, any>
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
-  const res = await fetch(`${baseUrl}${path}`, {
+  const url = `${baseUrl}${path}`
+  console.log("  Making request to:", url)
+
+  const res = await fetch(url, {
     ...options,
     credentials: "include",
     headers: {
@@ -11,6 +16,10 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
       ...(options.headers || {}),
     },
   })
+
+  console.log("  Response status:", res.status)
+  console.log("  Response headers:", Object.fromEntries(res.headers.entries()))
+
   const data = await res.json().catch(() => ({}))
   if (!res.ok) throw data
   return data as T
@@ -42,3 +51,5 @@ export const api = {
     remove: (id: string) => request<Json>(`/notes/${id}`, { method: "DELETE" }),
   },
 }
+
+export const API_BASE_URL = baseUrl

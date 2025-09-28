@@ -180,11 +180,15 @@ router.post("/logout", async (_req, res) => {
 // GET /auth/me
 router.get("/me", authMiddleware, async (req, res) => {
   const userId = req.auth!.sub
-  console.log("Looking for user with ID:", userId)
+  console.log("  Looking for user with ID:", userId)
   const user = await User.findOne({ _id: userId })
-  console.log("Found user:", user)
+  console.log("  Found user:", user)
   if (!user) return res.status(404).json({ error: "User not found" })
   return res.json({ user: { id: user._id, name: user.name, email: user.email } })
+})
+
+router.get("/login", (_req, res) => {
+  res.json({ message: "Login endpoint exists. Use POST /auth/login/start to begin login." })
 })
 
 // Google OAuth routes
@@ -198,16 +202,26 @@ if (GOOGLE_ENABLED) {
       try {
         const user = req.user as any
         if (!user) {
-          console.error("No user found after Google authentication")
+          console.error("  No user found after Google authentication")
           return res.redirect(`${CLIENT_ORIGIN}/login?error=no_user`)
         }
 
-        console.log("Google OAuth success for user:", user.email)
+        console.log("  Google OAuth success for user:", user.email)
         const token = signJwt(user._id.toString(), user.email)
-        res.cookie("token", token, cookieOptions())
+
+        const isProd = NODE_ENV === "production"
+        res.cookie("token", token, {
+          httpOnly: true,
+          secure: isProd,
+          sameSite: isProd ? "none" : "lax",
+          maxAge: 7 * 24 * 60 * 60 * 1000,
+          domain: isProd ? undefined : undefined,
+        })
+
+        console.log("  Cookie set, redirecting to dashboard")
         res.redirect(`${CLIENT_ORIGIN}/dashboard`)
       } catch (error) {
-        console.error("Google OAuth callback error:", error)
+        console.error("  Google OAuth callback error:", error)
         res.redirect(`${CLIENT_ORIGIN}/login?error=callback_error`)
       }
     },

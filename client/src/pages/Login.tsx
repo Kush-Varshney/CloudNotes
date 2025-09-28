@@ -2,7 +2,7 @@
 
 import { type FormEvent, useState, useEffect } from "react"
 import { Link, useNavigate, useSearchParams } from "react-router-dom"
-import { api } from "@/lib/api"
+import { api, API_BASE_URL } from "@/lib/api"
 import { validateEmail, validateOTP } from "@/lib/validation"
 
 export default function Login() {
@@ -18,20 +18,20 @@ export default function Login() {
 
   // Handle Google OAuth errors
   useEffect(() => {
-    const errorParam = searchParams.get('error')
+    const errorParam = searchParams.get("error")
     if (errorParam) {
       switch (errorParam) {
-        case 'google_auth_failed':
-          setError('Google authentication failed. Please try again.')
+        case "google_auth_failed":
+          setError("Google authentication failed. Please try again.")
           break
-        case 'no_user':
-          setError('No user found after Google authentication.')
+        case "no_user":
+          setError("No user found after Google authentication.")
           break
-        case 'callback_error':
-          setError('An error occurred during Google authentication.')
+        case "callback_error":
+          setError("An error occurred during Google authentication.")
           break
         default:
-          setError('An unknown error occurred.')
+          setError("An unknown error occurred.")
       }
     }
   }, [searchParams])
@@ -40,14 +40,14 @@ export default function Login() {
     e.preventDefault()
     setError(null)
     setFieldErrors({})
-    
+
     // Validate email
     const emailError = validateEmail(form.email)
     if (emailError) {
       setFieldErrors({ email: emailError.message })
       return
     }
-    
+
     try {
       setLoading(true)
       const res = await api.loginStart({ email: form.email })
@@ -63,14 +63,14 @@ export default function Login() {
     e.preventDefault()
     setError(null)
     setFieldErrors({})
-    
+
     // Validate OTP
     const otpError = validateOTP(otp)
     if (otpError) {
       setFieldErrors({ otp: otpError.message })
       return
     }
-    
+
     try {
       setLoading(true)
       await api.loginVerify({ email: form.email, otp, keepSignedIn: form.keepSignedIn })
@@ -87,7 +87,7 @@ export default function Login() {
   async function onResendOtp() {
     setError(null)
     setFieldErrors({})
-    
+
     try {
       setLoading(true)
       const res = await api.loginStart({ email: form.email })
@@ -119,7 +119,7 @@ export default function Login() {
             <span className="logo-text">CloudNotes</span>
           </div>
         </div>
-        
+
         <h1 className="title">Sign in</h1>
 
         <form className="grid gap" onSubmit={showOtpField ? onVerify : onStart}>
@@ -161,11 +161,7 @@ export default function Login() {
                   className={fieldErrors.otp ? "error" : ""}
                   placeholder="Enter 6-digit OTP"
                 />
-                <button
-                  type="button"
-                  className="otp-toggle"
-                  onClick={() => setShowOtp(!showOtp)}
-                >
+                <button type="button" className="otp-toggle" onClick={() => setShowOtp(!showOtp)}>
                   {showOtp ? "👁️" : "👁️‍🗨️"}
                 </button>
               </div>
@@ -175,10 +171,7 @@ export default function Login() {
 
           {error && <p className="error">{String(error)}</p>}
           <button className="btn primary" type="submit" disabled={loading}>
-            {loading 
-              ? (showOtpField ? "Verifying..." : "Sending OTP...") 
-              : (showOtpField ? "Sign in" : "Get OTP")
-            }
+            {loading ? (showOtpField ? "Verifying..." : "Sending OTP...") : showOtpField ? "Sign in" : "Get OTP"}
           </button>
 
           {!showOtpField && (
@@ -186,12 +179,12 @@ export default function Login() {
               <div className="muted">
                 New here? <Link to="/">Create one</Link>
               </div>
-              
+
               <div className="divider">
                 <span>or</span>
               </div>
-              
-              <a href="/auth/google" className="btn ghost google">
+
+              <a href={`${API_BASE_URL}/auth/google`} className="btn ghost google">
                 <img src="/images/google-logo.svg" alt="Google" width="20" height="20" />
                 Continue with Google
               </a>
@@ -208,7 +201,10 @@ export default function Login() {
 
           {showOtpField && (
             <div className="muted">
-              Wrong email? <button type="button" className="link" onClick={onStartOver}>Start over</button>
+              Wrong email?{" "}
+              <button type="button" className="link" onClick={onStartOver}>
+                Start over
+              </button>
             </div>
           )}
         </form>
