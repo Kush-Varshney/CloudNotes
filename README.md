@@ -321,9 +321,3 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 ---
 
 **Note**: This is a demo application for educational purposes. For production use, ensure proper security audits and compliance measures.
-
-## 🌟 Show Your Support
-
-Give a ⭐️ if this project helped you!
-
----
