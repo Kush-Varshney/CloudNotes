@@ -16,23 +16,10 @@ app.use(cookieParser())
 
 app.use(
   cors({
-    origin: (origin, callback) => {
-      // Allow requests with no origin (like mobile apps or curl requests)
-      if (!origin) return callback(null, true)
-
-      // Allow the configured client origin
-      if (origin === CLIENT_ORIGIN) return callback(null, true)
-
-      // Allow localhost for development
-      if (origin.includes("localhost") || origin.includes("127.0.0.1")) {
-        return callback(null, true)
-      }
-
-      // Allow Vercel preview deployments
-      if (origin.includes(".vercel.app")) return callback(null, true)
-
-      callback(new Error("Not allowed by CORS"))
-    },
+    origin: [
+      CLIENT_ORIGIN,
+      "https://cloudnotesbykush.vercel.app",
+    ],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization", "Cookie"],
