@@ -2,8 +2,8 @@
 
 import { type FormEvent, useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
-import { api } from "@/lib/api"
-import { validateEmail, validateName, validateDateOfBirth, validateOTP } from "@/lib/validation"
+import { api } from "../lib/api"
+import { validateEmail, validateName, validateDateOfBirth, validateOTP } from "../lib/validation"
 
 export default function SignUp() {
   const [showOtp, setShowOtp] = useState(false)
@@ -37,7 +37,7 @@ export default function SignUp() {
     
     try {
       setLoading(true)
-      const res = await api.signupStart(form)
+      await api.signupStart(form)
       setShowOtpField(true)
     } catch (err: any) {
       setError(err?.error || "Failed to start signup")

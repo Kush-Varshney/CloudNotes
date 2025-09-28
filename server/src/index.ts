@@ -3,7 +3,7 @@ import cors from "cors"
 import cookieParser from "cookie-parser"
 import passport from "passport"
 import { connectDB } from "./config/db"
-import { CLIENT_ORIGIN, PORT } from "./config/env"
+import { PORT } from "./config/env"
 import "./config/passport"
 import authRoutes from "./routes/auth"
 import notesRoutes from "./routes/notes"
@@ -11,36 +11,34 @@ import { authMiddleware } from "./middleware/auth"
 
 const app = express()
 
+// Define allowed origins
+const allowedOrigins = [
+  "https://cloudnotesbykush.vercel.app",
+  "http://localhost:5173",
+  "http://127.0.0.1:5173",
+]
+
+const corsOptions: cors.CorsOptions = {
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps or curl requests) or from whitelisted origins
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true)
+    } else {
+      callback(new Error("Not allowed by CORS"))
+    }
+  },
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+}
+
 app.use(express.json())
-app.use(cookieParser())
+app.use(cookieParser()) // Maintained for any other potential uses, but not for auth
+app.use(cors(corsOptions))
 
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      // Allow requests with no origin (like mobile apps or curl requests)
-      if (!origin) return callback(null, true)
-
-      // Allow the main client origin
-      if (origin === CLIENT_ORIGIN) return callback(null, true)
-
-      // Allow all Vercel preview URLs for the client
-      if (/\.vercel\.app$/.test(origin)) {
-        return callback(null, true)
-      }
-
-      // Allow localhost for development
-      if (origin.includes("localhost") || origin.includes("127.0.0.1")) {
-        return callback(null, true)
-      }
-
-      // Block all other origins
-      return callback(new Error("Not allowed by CORS"))
-    },
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization", "Cookie"],
-  }),
-)
+// Pre-flight requests
+// The browser sends an OPTIONS request first to check if the actual request is safe to send.
+// We need to handle this explicitly.
+app.options("*", cors(corsOptions)) 
 
 // Only initialize passport for Google OAuth, but don't use sessions
 app.use(passport.initialize())
