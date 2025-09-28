@@ -3,9 +3,9 @@ import { MONGO_URI, SAMPLE_MODE } from "./env"
 
 export async function connectDB() {
   if (SAMPLE_MODE) {
-    console.log("[v0] SAMPLE_MODE enabled: skipping MongoDB connection")
+    console.log("SAMPLE_MODE enabled: skipping MongoDB connection")
     return
   }
   await mongoose.connect(MONGO_URI)
-  console.log("[v0] MongoDB connected")
+  console.log("MongoDB connected")
 }

@@ -6,7 +6,7 @@ import { Otp } from "../models/Otp"
 import bcrypt from "bcryptjs"
 import jwt from "jsonwebtoken"
 import { JWT_SECRET, NODE_ENV, GOOGLE_ENABLED, CLIENT_ORIGIN } from "../config/env"
-import { loginSchema, signupStartSchema, signupVerifySchema, emailSchema } from "../utils/validators"
+import { signupStartSchema, signupVerifySchema, emailSchema } from "../utils/validators"
 import { sendOtpEmail } from "../utils/mailer"
 import { authMiddleware } from "../middleware/auth"
 
@@ -24,7 +24,7 @@ function cookieOptions(keepSignedIn?: boolean) {
   return {
     httpOnly: true,
     secure: isProd,
-    sameSite: "lax" as const,
+    sameSite: isProd ? ("none" as const) : ("lax" as const),
     maxAge,
   }
 }
@@ -63,7 +63,7 @@ router.post("/signup/verify", async (req, res) => {
   const { email, otp } = parse.data
   const record = (await Otp.findOne({ email, purpose: "signup" })) as any
   if (!record) return res.status(400).json({ error: "OTP not found. Start signup again." })
-  
+
   console.log("OTP record found:", { name: record.name, dob: record.dob, email: record.email })
 
   if (record.expiresAt < new Date()) return res.status(400).json({ error: "OTP expired" })
@@ -129,11 +129,16 @@ router.post("/login/start", async (req, res) => {
 
 // POST /auth/login/verify
 router.post("/login/verify", async (req, res) => {
-  const parse = z.object({ 
-    email: emailSchema, 
-    otp: z.string().length(6).regex(/^\d{6}$/),
-    keepSignedIn: z.boolean().optional()
-  }).safeParse(req.body)
+  const parse = z
+    .object({
+      email: emailSchema,
+      otp: z
+        .string()
+        .length(6)
+        .regex(/^\d{6}$/),
+      keepSignedIn: z.boolean().optional(),
+    })
+    .safeParse(req.body)
   if (!parse.success) return res.status(400).json({ error: parse.error.flatten() })
 
   const { email, otp, keepSignedIn } = parse.data
@@ -163,7 +168,12 @@ router.post("/login/verify", async (req, res) => {
 
 // POST /auth/logout
 router.post("/logout", async (_req, res) => {
-  res.clearCookie("token", { httpOnly: true, sameSite: "lax" })
+  const isProd = NODE_ENV === "production"
+  res.clearCookie("token", {
+    httpOnly: true,
+    sameSite: isProd ? "none" : "lax",
+    secure: isProd,
+  })
   return res.json({ message: "Logged out" })
 })
 
@@ -180,8 +190,9 @@ router.get("/me", authMiddleware, async (req, res) => {
 // Google OAuth routes
 if (GOOGLE_ENABLED) {
   router.get("/google", passport.authenticate("google", { scope: ["profile", "email"] }))
-  
-  router.get("/google/callback", 
+
+  router.get(
+    "/google/callback",
     passport.authenticate("google", { failureRedirect: `${CLIENT_ORIGIN}/login?error=google_auth_failed` }),
     (req, res) => {
       try {
@@ -190,7 +201,7 @@ if (GOOGLE_ENABLED) {
           console.error("No user found after Google authentication")
           return res.redirect(`${CLIENT_ORIGIN}/login?error=no_user`)
         }
-        
+
         console.log("Google OAuth success for user:", user.email)
         const token = signJwt(user._id.toString(), user.email)
         res.cookie("token", token, cookieOptions())
@@ -199,7 +210,7 @@ if (GOOGLE_ENABLED) {
         console.error("Google OAuth callback error:", error)
         res.redirect(`${CLIENT_ORIGIN}/login?error=callback_error`)
       }
-    }
+    },
   )
 } else {
   router.get("/google", (_req, res) => res.status(501).json({ error: "Google OAuth not configured" }))
