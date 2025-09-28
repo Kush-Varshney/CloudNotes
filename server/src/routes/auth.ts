@@ -195,11 +195,11 @@ router.get("/login", (_req, res) => {
 
 // Google OAuth routes
 if (GOOGLE_ENABLED) {
-  router.get("/google", passport.authenticate("google", { scope: ["profile", "email"] }))
+  router.get("/google", passport.authenticate("google", { scope: ["profile", "email"], session: false }))
 
   router.get(
     "/google/callback",
-    passport.authenticate("google", { failureRedirect: `${CLIENT_ORIGIN}/login?error=google_auth_failed` }),
+    passport.authenticate("google", { failureRedirect: `${CLIENT_ORIGIN}/login?error=google_auth_failed`, session: false }),
     (req, res) => {
       try {
         const user = req.user as any
