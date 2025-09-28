@@ -1,7 +1,7 @@
 import passport from "passport"
 import { Strategy as GoogleStrategy } from "passport-google-oauth20"
 import { User } from "../models/User"
-import { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_ENABLED } from "./env"
+import { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_ENABLED, SERVER_URL } from "./env"
 
 if (GOOGLE_ENABLED) {
   passport.use(
@@ -9,7 +9,7 @@ if (GOOGLE_ENABLED) {
       {
         clientID: GOOGLE_CLIENT_ID,
         clientSecret: GOOGLE_CLIENT_SECRET,
-        callbackURL: "/auth/google/callback",
+        callbackURL: `${SERVER_URL}/auth/google/callback`,
       },
       async (accessToken, refreshToken, profile, done) => {
         try {

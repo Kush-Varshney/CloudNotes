@@ -17,6 +17,7 @@ export const JWT_SECRET = SAMPLE_MODE
 export const CLIENT_ORIGIN = SAMPLE_MODE
   ? process.env.CLIENT_ORIGIN || "http://localhost:5173"
   : required(process.env.CLIENT_ORIGIN, "CLIENT_ORIGIN")
+export const SERVER_URL = process.env.SERVER_URL || `http://localhost:5000`
 
 export const SMTP_HOST = process.env.SMTP_HOST || ""
 export const SMTP_PORT = Number.parseInt(process.env.SMTP_PORT || "0", 10)
