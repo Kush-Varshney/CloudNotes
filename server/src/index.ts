@@ -3,7 +3,7 @@ import cors from "cors"
 import cookieParser from "cookie-parser"
 import passport from "passport"
 import { connectDB } from "./config/db"
-import { CLIENT_ORIGIN, PORT, NODE_ENV } from "./config/env"
+import { CLIENT_ORIGIN, PORT } from "./config/env"
 import "./config/passport"
 import authRoutes from "./routes/auth"
 import notesRoutes from "./routes/notes"
@@ -14,20 +14,24 @@ const app = express()
 app.use(express.json())
 app.use(cookieParser())
 
-// Determine allowed origins based on environment
-const isProd = NODE_ENV === "production"
-const allowedOrigins = isProd
-  ? [CLIENT_ORIGIN] // Production: only allow the main client origin
-  : ["http://localhost:5173", "http://127.0.0.1:5173"] // Development: allow local Vite server
-
 app.use(
   cors({
     origin: (origin, callback) => {
       // Allow requests with no origin (like mobile apps or curl requests)
       if (!origin) return callback(null, true)
 
-      // Allow requests from whitelisted origins
-      if (allowedOrigins.includes(origin)) return callback(null, true)
+      // Allow the main client origin
+      if (origin === CLIENT_ORIGIN) return callback(null, true)
+
+      // Allow all Vercel preview URLs for the client
+      if (/\.vercel\.app$/.test(origin)) {
+        return callback(null, true)
+      }
+
+      // Allow localhost for development
+      if (origin.includes("localhost") || origin.includes("127.0.0.1")) {
+        return callback(null, true)
+      }
 
       // Block all other origins
       return callback(new Error("Not allowed by CORS"))

@@ -16,10 +16,16 @@ declare global {
 }
 
 export function authMiddleware(req: Request, res: Response, next: NextFunction) {
-  const token = req.cookies?.token as string | undefined
+  const authHeader = req.headers.authorization
+
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return res.status(401).json({ error: "Unauthorized - No token provided" })
+  }
+
+  const token = authHeader.split(" ")[1]
 
   if (!token) {
-    return res.status(401).json({ error: "Unauthorized - No token" })
+    return res.status(401).json({ error: "Unauthorized - Malformed token" })
   }
 
   try {
