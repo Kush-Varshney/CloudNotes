@@ -28,7 +28,6 @@ function cookieOptions(keepSignedIn?: boolean) {
     sameSite: isProd ? ("none" as const) : ("lax" as const), // Allow cross-origin in production
     maxAge,
     path: "/",
-    domain: isProd ? new URL(CLIENT_ORIGIN).hostname : undefined,
   }
 
   return options
@@ -177,7 +176,6 @@ router.post("/logout", async (_req, res) => {
     sameSite: isProd ? "none" : "lax",
     secure: isProd,
     path: "/",
-    domain: isProd ? new URL(CLIENT_ORIGIN).hostname : undefined,
   })
   return res.json({ message: "Logged out" })
 })
